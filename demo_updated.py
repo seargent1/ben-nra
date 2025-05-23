@@ -682,22 +682,36 @@ def run_single_scenario(scenario, dataset, total_inferences, max_consultation_tu
 def run_bias_dataset_combination(dataset, bias, num_scenarios, total_inferences, consultation_turns):
     """Run a single bias-dataset combination test"""
     log_file = get_log_file(dataset, bias)
-    completed_scenarios = get_completed_scenarios(log_file)
+    completed_scenario_ids = get_completed_scenarios(log_file) # Renamed for clarity
     
     print(f"\n=== Testing {bias} bias on {dataset} dataset ===")
     print(f"Log file: {log_file}")
-    print(f"Already completed scenarios: {len(completed_scenarios)}")
+    print(f"Already completed scenario IDs: {len(completed_scenario_ids)}")
+
+    # Calculate number of correct scenarios from previous runs
+    num_correct_from_previous_runs = 0
+    if os.path.exists(log_file) and os.path.getsize(log_file) > 0:
+        with open(log_file, 'r') as f:
+            try:
+                previous_log_data = json.load(f)
+                if isinstance(previous_log_data, list):
+                    num_correct_from_previous_runs = sum(
+                        1 for entry in previous_log_data
+                        if entry.get("scenario_id") in completed_scenario_ids and entry.get("is_correct")
+                    )
+            except json.JSONDecodeError:
+                print(f"Warning: Could not parse log file {log_file} for calculating previous accuracy.")
     
     scenario_loader = ScenarioLoader(dataset=dataset)
     max_available = scenario_loader.num_scenarios
     scenarios_to_run = min(num_scenarios, max_available)
     
-    total_correct = 0
-    total_simulated = 0
+    total_correct_current_session = 0 # Renamed for clarity
+    total_simulated_current_session = 0 # Renamed for clarity
     
     # Create a list of scenarios to run, skipping already completed ones
-    scenarios_to_process = [i for i in range(scenarios_to_run) if i not in completed_scenarios]
-    print(f"Scenarios to run: {len(scenarios_to_process)} of {scenarios_to_run}")
+    scenarios_to_process = [i for i in range(scenarios_to_run) if i not in completed_scenario_ids]
+    print(f"Scenarios to run in this session: {len(scenarios_to_process)} of {scenarios_to_run} total planned")
     
     for scenario_idx in scenarios_to_process:
         print(f"\n--- Running Scenario {scenario_idx + 1}/{scenarios_to_run} with {bias} bias ---")
@@ -706,45 +720,61 @@ def run_bias_dataset_combination(dataset, bias, num_scenarios, total_inferences,
             print(f"Error loading scenario {scenario_idx}, skipping.")
             continue
 
-        total_simulated += 1
+        total_simulated_current_session += 1
         run_log, is_correct = run_single_scenario(
             scenario, dataset, total_inferences, consultation_turns, scenario_idx, bias
         )
 
         if is_correct:
-            total_correct += 1
+            total_correct_current_session += 1
 
         log_scenario_data(run_log, log_file)
         print(f"Tests requested in Scenario {scenario_idx + 1}: {run_log.get('requested_tests', [])}")
         
         # Update progress
-        if total_simulated > 0:
-            accuracy = (total_correct / total_simulated) * 100
-            print(f"\nCurrent Accuracy for {bias} bias: {accuracy:.2f}% ({total_correct}/{total_simulated})")
+        if total_simulated_current_session > 0:
+            accuracy_current_session = (total_correct_current_session / total_simulated_current_session) * 100
+            print(f"\nCurrent Accuracy for this session ({bias} bias on {dataset}): {accuracy_current_session:.2f}% ({total_correct_current_session}/{total_simulated_current_session})")
             
             # Calculate overall progress including previously completed scenarios
-            overall_completed = len(completed_scenarios) + total_simulated
-            overall_accuracy = ((len([s for s in completed_scenarios if s in run_log.get("is_correct", False)]) + total_correct) / 
-                               overall_completed) * 100 if overall_completed > 0 else 0
-            print(f"Overall Progress: {overall_completed}/{scenarios_to_run} scenarios completed")
+            overall_completed_count = len(completed_scenario_ids) + total_simulated_current_session
+            overall_correct_count = num_correct_from_previous_runs + total_correct_current_session
+            
+            overall_accuracy_so_far = (overall_correct_count / overall_completed_count) * 100 if overall_completed_count > 0 else 0
+            # The original problematic line was:
+            # overall_accuracy = ((len([s for s in completed_scenarios if s in run_log.get("is_correct", False)]) + total_correct) / 
+            #                    overall_completed) * 100 if overall_completed > 0 else 0
+            # This is now correctly calculated as overall_accuracy_so_far.
+            print(f"Overall Progress for {bias} on {dataset}: {overall_completed_count}/{scenarios_to_run} scenarios completed. Overall Accuracy: {overall_accuracy_so_far:.2f}% ({overall_correct_count}/{overall_completed_count})")
     
     # Calculate final statistics for this combination
-    final_completed = len(completed_scenarios) + total_simulated
-    if final_completed > 0:
+    final_completed_count = len(completed_scenario_ids) + total_simulated_current_session
+    if final_completed_count > 0:
         # Load all results to get accurate count
         all_results = []
         if os.path.exists(log_file):
             with open(log_file, 'r') as f:
-                all_results = json.load(f)
+                try:
+                    all_results = json.load(f)
+                    if not isinstance(all_results, list): # Ensure it's a list
+                        all_results = []
+                except json.JSONDecodeError:
+                    print(f"Warning: Could not parse final log file {log_file} for final stats. Results may be inaccurate.")
+                    all_results = []
+
+        correct_count_total = sum(1 for entry in all_results if entry.get("is_correct")) # Ensure entry.get("is_correct") is True
         
-        correct_count = sum(1 for entry in all_results if entry.get("is_correct", False))
-        final_accuracy = (correct_count / final_completed) * 100
+        # Ensure final_completed_count matches the number of entries if all were logged correctly
+        # This uses the actual number of entries in the log file for accuracy if possible.
+        actual_entries_in_log = len(all_results)
+        
+        final_accuracy = (correct_count_total / actual_entries_in_log) * 100 if actual_entries_in_log > 0 else 0
         
         print(f"\n=== Results for {bias} bias on {dataset} dataset ===")
-        print(f"Total Scenarios Completed: {final_completed}/{scenarios_to_run}")
-        print(f"Final Accuracy: {final_accuracy:.2f}% ({correct_count}/{final_completed})")
+        print(f"Total Scenarios Logged: {actual_entries_in_log} (planned: {scenarios_to_run}, completed this/prev sessions: {final_completed_count})")
+        print(f"Final Accuracy: {final_accuracy:.2f}% ({correct_count_total}/{actual_entries_in_log})")
     
-    return final_completed >= scenarios_to_run  # Return True if all scenarios were completed
+    return final_completed_count >= scenarios_to_run
 
 def main():
     # Create argument parser for optional parameters
@@ -793,7 +823,7 @@ def main():
                     with open(log_file, 'r') as f:
                         results = json.load(f)
                         correct_count = sum(1 for entry in results if entry.get("is_correct", False))
-                        total_count = len(results)
+                        total_count = len(results);
                         
                         summary["results_by_combination"][combination_key] = {
                             "completed": completed,

@@ -6,6 +6,20 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import defaultdict
 
+# --- Bias Definitions ---
+COGNITIVE_BIASES_LIST = [
+    "recency", "frequency", "false_consensus", "status_quo", "confirmation", 
+    "availability", "premature_closure", "diagnosis_momentum", "gamblers_fallacy", 
+    "overconfidence", "omission", "representativeness", "commission", "sunk_cost", 
+    "affective", "aggregate", "anchoring", "bandwagon", "outcome", 
+    "vertical_line_failure", "zebra_retreat", "suttons_slip"
+]
+
+DEMOGRAPHIC_BIASES_LIST = [
+    "race", "sexual_orientation", "cultural", "education", "religion", 
+    "socioeconomic", "gender", "age", "disability", "weight", "mental_health"
+]
+
 def load_all_results(logs_dir="logs"):
     """Load all bias testing results from log files"""
     results = []
@@ -109,10 +123,7 @@ def plot_bias_impact(comparison_df, output_dir="logs"):
         comparison_df.to_csv(os.path.join(output_dir, 'detailed_bias_comparison.csv'), index=False)
         return
 
-    # Plot bias impact by dataset (for accuracy)
-    # plt.figure(figsize=(14, 10)) # This figure is unused if we create a new one in the loop immediately
-    
-    # individual Accuracy plots
+    # Plot bias impact by dataset (for accuracy) - Individual dataset plots
     for dataset in comparison_df['dataset'].unique():
         dataset_df = comparison_df[comparison_df['dataset'] == dataset].sort_values('accuracy_impact')
         
@@ -137,13 +148,13 @@ def plot_bias_impact(comparison_df, output_dir="logs"):
         plt.savefig(os.path.join(output_dir, f'bias_impact_{dataset}.png'))
         plt.close()
 
-    # Add visualizations for other metrics
-    metrics = {
+    # Visualizations for other metrics - Individual dataset plots (excluding disagreements)
+    metrics_for_individual_plots = {
         'tests_requested_count': 'Tests Requested Count',
         'diagnoses_considered_count': 'Diagnoses Considered Count',
-        'disagreements': 'Disagreements'
+        # 'disagreements': 'Disagreements' # Removed as per request
     }
-    for metric_key, metric_label in metrics.items():
+    for metric_key, metric_label in metrics_for_individual_plots.items():
         for dataset in comparison_df['dataset'].unique():
             dataset_df = comparison_df[comparison_df['dataset'] == dataset].sort_values(f'{metric_key}_impact')
             if dataset_df.empty:
@@ -165,7 +176,7 @@ def plot_bias_impact(comparison_df, output_dir="logs"):
             # Add value labels
             for i, v in enumerate(dataset_df[f'{metric_key}_impact']):
                 ax.text(
-                    v + (0.5 if v < 0 else -0.5),
+                    v + (0.5 if v < 0 else -0.5), # Adjusted offset logic slightly
                     i,
                     f"{v:.1f}",
                     color='black',
@@ -176,6 +187,75 @@ def plot_bias_impact(comparison_df, output_dir="logs"):
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, f'bias_{metric_key}_impact_{dataset}.png'))
             plt.close()
+
+    # New: Combined dataset plots (Cognitive vs Implicit biases)
+    metrics_for_combined_plots = {
+        'accuracy': 'Diagnostic Accuracy',
+        'tests_requested_count': 'Tests Requested Count',
+        'diagnoses_considered_count': 'Diagnoses Considered Count'
+    }
+    
+    bias_groups = {
+        'cognitive': COGNITIVE_BIASES_LIST,
+        'implicit': DEMOGRAPHIC_BIASES_LIST
+    }
+
+    for group_name, bias_list in bias_groups.items():
+        for metric_key, metric_label in metrics_for_combined_plots.items():
+            # Filter for the current bias group and ensure the impact column exists
+            if f'{metric_key}_impact' not in comparison_df.columns:
+                print(f"Warning: Metric impact column '{metric_key}_impact' not found in comparison_df. Skipping plot for {group_name} - {metric_label}.")
+                continue
+
+            plot_df = comparison_df[comparison_df['bias'].isin(bias_list)].copy() # Use .copy() to avoid SettingWithCopyWarning
+
+            if plot_df.empty:
+                print(f"No data for {group_name} biases and metric {metric_label}. Skipping plot.")
+                continue
+            
+            # Sort biases for consistent plotting order
+            # Ensure 'bias' column is of a type that can be sorted, e.g., string
+            plot_df['bias'] = plot_df['bias'].astype(str)
+            sorted_biases = sorted(plot_df['bias'].unique())
+
+
+            plt.figure(figsize=(9, 12)) # Dynamic height, adjusted for taller plots
+            
+            ax = sns.barplot(
+                x=f'{metric_key}_impact',
+                y='bias',
+                hue='dataset',
+                data=plot_df,
+                order=sorted_biases,
+                palette="viridis" 
+            )
+
+            plt.axvline(x=0, color='black', linestyle='-', alpha=0.7)
+            title = f'Impact of {group_name.capitalize()} Biases on {metric_label}\n(Combined Datasets)'
+            plt.title(title, fontsize=16)
+            
+            x_label = f'{metric_label} Impact'
+            if metric_key == 'accuracy':
+                x_label += ' (percentage points)'
+            plt.xlabel(x_label, fontsize=14)
+            plt.ylabel('Bias Type', fontsize=14)
+            
+            plt.legend(title='Dataset', loc='best') # Ensure legend is shown
+
+            # Add value labels to bars
+            for container in ax.containers:
+                try:
+                    ax.bar_label(container, fmt='%.2f', label_type='edge', padding=3, fontsize=9, fontweight='bold')
+                except AttributeError: # Older matplotlib might not have ax.containers or bar_label options
+                    print("Skipping bar labels due to matplotlib version or container issue.")
+
+
+            plt.tight_layout(rect=[0, 0, 0.95, 1]) # Adjust layout to make space for legend if needed
+            
+            plot_filename = f'{group_name}_biases_{metric_key}_impact_combined_datasets.png'
+            plt.savefig(os.path.join(output_dir, plot_filename))
+            plt.close()
+            print(f"Saved combined plot: {plot_filename}")
 
     # Save the detailed comparison DataFrame
     comparison_df.to_csv(os.path.join(output_dir, 'detailed_bias_comparison.csv'), index=False)
