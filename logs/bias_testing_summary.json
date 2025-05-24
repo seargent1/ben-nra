@@ -1,6 +1,6 @@
 {
-  "start_time": "2025-05-23T12:51:19.400586",
-  "completed_combinations": 61,
+  "start_time": "2025-05-23T21:00:19.258149",
+  "completed_combinations": 70,
   "total_combinations": 70,
   "results_by_combination": {
     "MedQA_none": {
@@ -336,8 +336,8 @@
     "NEJM_zebra_retreat": {
       "completed": true,
       "scenarios_run": 25,
-      "correct_diagnoses": 14,
-      "accuracy": 56.00000000000001
+      "correct_diagnoses": 9,
+      "accuracy": 36.0
     },
     "NEJM_suttons_slip": {
       "completed": true,
@@ -356,8 +356,62 @@
       "scenarios_run": 25,
       "correct_diagnoses": 11,
       "accuracy": 44.0
+    },
+    "NEJM_cultural": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 11,
+      "accuracy": 44.0
+    },
+    "NEJM_education": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 8,
+      "accuracy": 32.0
+    },
+    "NEJM_religion": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 10,
+      "accuracy": 40.0
+    },
+    "NEJM_socioeconomic": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 9,
+      "accuracy": 36.0
+    },
+    "NEJM_gender": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 9,
+      "accuracy": 36.0
+    },
+    "NEJM_age": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 10,
+      "accuracy": 40.0
+    },
+    "NEJM_disability": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 12,
+      "accuracy": 48.0
+    },
+    "NEJM_weight": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 7,
+      "accuracy": 28.000000000000004
+    },
+    "NEJM_mental_health": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 10,
+      "accuracy": 40.0
     }
   },
-  "end_time": "2025-05-23T12:51:34.959521",
-  "total_duration_seconds": 15.558935
+  "end_time": "2025-05-23T21:36:10.029985",
+  "total_duration_seconds": 2150.771836
 }
