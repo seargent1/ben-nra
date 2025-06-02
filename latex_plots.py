@@ -191,7 +191,7 @@ def plot_category_summary_impact(category_summary_df, output_dir="figures"):
     os.makedirs(output_dir, exist_ok=True)
 
     metrics = {
-        'accuracy': 'Accuracy Impact (pp)',
+        'accuracy': 'Accuracy Impact (\%)', # Changed from (pp)
         'tests_requested_count': 'Tests Requested Impact',
         'diagnoses_considered_count': 'Diagnoses Considered Impact'
     }
@@ -230,7 +230,7 @@ def plot_category_summary_impact(category_summary_df, output_dir="figures"):
         )
 
         plt.axvline(x=0, color='black', linestyle='--', lw=1, alpha=0.7)
-        plt.title(f'Bias Category Summary: {label}', fontsize=11)
+        # plt.title(f'Bias Category Summary: {label}', fontsize=11) # Removed title
         plt.xlabel(label)
         plt.ylabel('Bias Category') # Explicitly set Y-axis label
 
@@ -245,7 +245,7 @@ def plot_bias_impact(comparison_df, bias_list, group_name, output_dir="figures")
     os.makedirs(output_dir, exist_ok=True)
 
     metrics = {
-        'accuracy': 'Accuracy Impact (pp)',
+        'accuracy': 'Accuracy Impact (\%)', # Changed from (pp)
         'tests_requested_count': 'Tests Requested',
         'diagnoses_considered_count': 'Diagnoses Considered'
     }
@@ -278,7 +278,7 @@ def plot_bias_impact(comparison_df, bias_list, group_name, output_dir="figures")
 
         plt.axvline(x=0, color='black', linestyle='--', lw=1, alpha=0.7)
         # Use group_name directly as it will be more descriptive now
-        plt.title(f'{group_name} Biases: {label}', fontsize=11)
+        # plt.title(f'{group_name} Biases: {label}', fontsize=11) # Removed title
         plt.xlabel(label)
         plt.ylabel('')
 
