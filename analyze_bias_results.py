@@ -22,31 +22,30 @@ DEMOGRAPHIC_BIASES_LIST = [
 
 def load_all_results(logs_dir="logs"):
     """Load all bias testing results from log files"""
+    
     results = []
-    log_files = glob.glob(os.path.join(logs_dir, "*_log.json"))
+    log_files = glob.glob(os.path.join(logs_dir, "*gemini_log.json"))
     
     for log_file in log_files:
-        # Extract dataset and bias from filename
         filename = os.path.basename(log_file)
-        parts = filename.split('_log.json')[0].split('_', 1)
-        
-        if len(parts) < 2:
+        if filename.endswith('_gemini_log.json'):
+            core = filename[:-len('_gemini_log.json')]
+            dataset, bias = core.split('_', 1)
+        else:
             print(f"Skipping malformatted filename: {filename}")
             continue
-            
-        dataset, bias = parts
-        
+
         try:
             with open(log_file, 'r') as f:
                 data = json.load(f)
                 for entry in data:
                     entry['dataset'] = dataset
-                    entry['bias'] = bias
+                    entry['bias'] = bias.strip().lower()  # Always use bias from filename
                     results.append(entry)
         except Exception as e:
             print(f"Error loading {log_file}: {e}")
-    
     return results
+
 
 def calculate_bias_impact(results):
     """Calculate the impact of each bias on diagnostic accuracy and other metrics"""
@@ -57,6 +56,9 @@ def calculate_bias_impact(results):
         entry['disagreements'] = ca.get('disagreements')
     # Create a DataFrame
     df = pd.DataFrame(results)
+    print("Unique biases in DataFrame:", df['bias'].unique())
+    print("Unique datasets in DataFrame:", df['dataset'].unique())
+    print("Rows with bias=='none':", df[df['bias'] == 'none'].head())
 
     # Group by dataset and bias
     grouped = df.groupby(['dataset', 'bias']).agg({
@@ -110,7 +112,7 @@ def calculate_bias_impact(results):
     comparison_df = pd.DataFrame(comparison_data)
     return grouped, comparison_df
 
-def plot_bias_impact(comparison_df, output_dir="logs"):
+def plot_bias_impact(comparison_df, output_dir="gemini figures"):
     """Create visualizations of bias impact"""
     os.makedirs(output_dir, exist_ok=True)
     
@@ -264,6 +266,9 @@ def plot_bias_impact(comparison_df, output_dir="logs"):
 def main():
     print("Analyzing bias testing results...")
     results = load_all_results()
+    print("Sample loaded biases:", set(r['bias'] for r in results))
+    print("Sample loaded datasets:", set(r['dataset'] for r in results))
+    print("Sample rows with bias=='none':", [r for r in results if r['bias'] == 'none'][:3])
     print(f"Loaded {len(results)} scenario results from log files")
     
     if not results:
