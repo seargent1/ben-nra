@@ -859,10 +859,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    '''
-
-client = anthropic.Anthropic(api_key="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")
-models = client.models.list()
-for model in models:
-    print(model.id)
-'''
