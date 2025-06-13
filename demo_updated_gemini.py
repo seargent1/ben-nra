@@ -186,7 +186,6 @@ ALL_BIASES = {**COGNITIVE_BIASES, **DEMOGRAPHIC_BIASES}
 
 # --- Utility Functions ---
 def query_model(prompt, system_prompt, max_tokens=200):
-
     genai.configure(api_key="AIzaSyCdzEb7oS7zgpyy18UreQqWyljUheU5IBo")  
     model = genai.GenerativeModel(MODEL_NAME)
     response = model.generate_content(
@@ -214,7 +213,6 @@ def get_log_file(dataset, bias_name):
     os.makedirs(BASE_LOG_DIR, exist_ok=True)
     return os.path.join(BASE_LOG_DIR, f"{dataset}_{bias_name}_gemini_log.json")
 
-
 def log_scenario_data(data, log_file):
     """Log data to a specific log file"""
     # Ensure datetime is serializable
@@ -231,9 +229,7 @@ def log_scenario_data(data, log_file):
     existing_data.append(data)
     with open(log_file, 'w') as f:
         json.dump(existing_data, f, indent=2)
-
     print(f"Saved log to {log_file} with {len(existing_data)} entries.")
-
 
 def analyze_consultation(consultation_history):
     """
@@ -717,7 +713,6 @@ def run_bias_dataset_combination(dataset, bias, num_scenarios, total_inferences,
     # Create a list of scenarios to run, skipping already completed ones
     scenarios_to_process = [i for i in range(scenarios_to_run) if i not in completed_scenario_ids]
     print(f"Scenarios to run in this session: {len(scenarios_to_process)} of {scenarios_to_run} total planned")
-
     for scenario_idx in scenarios_to_process:
         print(f"\n--- Running Scenario {scenario_idx + 1}/{scenarios_to_run} with {bias} bias ---")
         scenario = scenario_loader.get_scenario(id=scenario_idx)
@@ -849,29 +844,23 @@ def main():
     summary["total_duration_seconds"] = (datetime.fromisoformat(summary["end_time"]) - 
                                         datetime.fromisoformat(summary["start_time"])).total_seconds()
     
-
     with open(os.path.join(BASE_LOG_DIR, "gemini_bias_testing_summary.json"), 'w') as f:
         json.dump(summary, f, indent=2)
     
     print("\n\n=== BIAS TESTING COMPLETE ===")
     print(f"Completed {summary['completed_combinations']}/{summary['total_combinations']} combinations")
     print(f"Total duration: {summary['total_duration_seconds']/3600:.2f} hours")
-
-
-
     print(f"Full results saved to {os.path.join(BASE_LOG_DIR, 'gemini_bias_testing_summary.json')}")
-
 
 
 if __name__ == "__main__":
     main()
-
-'''
+    '''
+ 
 import google.generativeai as genai
 
 genai.configure(api_key="AIzaSyCdzEb7oS7zgpyy18UreQqWyljUheU5IBo")  # Replace with your actual API key
 
 for model in genai.list_models():
     print(model.name)
-
 '''
