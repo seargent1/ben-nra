@@ -5,10 +5,11 @@ import argparse
 import glob
 import google.generativeai as genai
 import anthropic
-'''
+
 # --- Constants ---
-BASE_LOG_DIR = "logs"
-MODEL_NAME = "models/gemini-1.5-pro-latest" 
+BASE_LOG_DIR = "claude_logs"
+MODEL_NAME = "claude-opus-4-20250514"
+
 
 # --- Simulation Configuration Constants ---
 AGENT_DATASET = "MedQA"  # Start with MedQA as requested
@@ -16,7 +17,7 @@ NUM_SCENARIOS = 25       # Minimum 50 scenarios per bias-dataset combo
 TOTAL_INFERENCES = 10
 CONSULTATION_TURNS = 5
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")  # Set this in your environment
+
 # --- Bias Definitions ---
 COGNITIVE_BIASES = {
     "none": {
@@ -188,22 +189,20 @@ ALL_BIASES = {**COGNITIVE_BIASES, **DEMOGRAPHIC_BIASES}
 
 # --- Utility Functions ---
 def query_model(prompt, system_prompt, max_tokens=200):
-    api_key = os.environ.get("OPENAI_API_KEY")
-    
-    client = openai.OpenAI(api_key=api_key)
-    
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": prompt}
-    ]
-    
-    response = client.chat.completions.create(
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "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")
+    client = anthropic.Anthropic(api_key=api_key)
+    message = client.messages.create(
         model=MODEL_NAME,
-        messages=messages,
-        temperature=0.05,
         max_tokens=max_tokens,
+        temperature=0.05,
+        system=system_prompt,  # <--- system prompt goes here!
+        messages=[{"role": "user", "content": prompt}]
     )
-    answer = response.choices[0].message.content.strip()
+    # For Claude v3/v4, the response is in message.content (a list of dicts)
+    if hasattr(message, "content") and isinstance(message.content, list):
+        answer = "".join([part.text for part in message.content])
+    else:
+        answer = str(message)
     return re.sub(r"\s+", " ", answer)
 
 def compare_results(diagnosis, correct_diagnosis):
@@ -215,7 +214,7 @@ def compare_results(diagnosis, correct_diagnosis):
 def get_log_file(dataset, bias_name):
     """Create a log file name based on dataset and bias"""
     os.makedirs(BASE_LOG_DIR, exist_ok=True)
-    return os.path.join(BASE_LOG_DIR, f"{dataset}_{bias_name}_gemini_log.json")
+    return os.path.join(BASE_LOG_DIR, f"{dataset}_{bias_name}_claude_log.json")
 
 def log_scenario_data(data, log_file):
     """Log data to a specific log file"""
@@ -855,14 +854,15 @@ def main():
     print("\n\n=== BIAS TESTING COMPLETE ===")
     print(f"Completed {summary['completed_combinations']}/{summary['total_combinations']} combinations")
     print(f"Total duration: {summary['total_duration_seconds']/3600:.2f} hours")
-    print(f"Full results saved to {os.path.join(BASE_LOG_DIR, 'gemini_bias_testing_summary.json')}")
+    print(f"Full results saved to {os.path.join(BASE_LOG_DIR, 'claude_bias_testing_summary.json')}")
 
 
 if __name__ == "__main__":
     main()
     '''
- 
-client = anthropic.Anthropic(api_key="YOUR_ANTHROPIC_API_KEY")
+
+client = anthropic.Anthropic(api_key="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")
 models = client.models.list()
-for model in models["data"]:
-    print(model["id"])
+for model in models:
+    print(model.id)
+'''
