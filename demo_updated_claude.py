@@ -5,7 +5,7 @@ import argparse
 import glob
 import google.generativeai as genai
 import anthropic
-
+'''
 # --- Constants ---
 BASE_LOG_DIR = "logs"
 MODEL_NAME = "models/gemini-1.5-pro-latest" 
@@ -188,20 +188,22 @@ ALL_BIASES = {**COGNITIVE_BIASES, **DEMOGRAPHIC_BIASES}
 
 # --- Utility Functions ---
 def query_model(prompt, system_prompt, max_tokens=200):
-    genai.configure(api_key="AIzaSyCdzEb7oS7zgpyy18UreQqWyljUheU5IBo")  
-    model = genai.GenerativeModel(MODEL_NAME)
-    response = model.generate_content(
-        [
-            {"role": "user", "parts": [system_prompt + "\n" + prompt]}
-        ],
-        generation_config={
-            "temperature": 0.05,
-            "top_p": 1,
-            "top_k": 1,
-            "max_output_tokens": max_tokens
-        }
+    api_key = os.environ.get("OPENAI_API_KEY")
+    
+    client = openai.OpenAI(api_key=api_key)
+    
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt}
+    ]
+    
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=messages,
+        temperature=0.05,
+        max_tokens=max_tokens,
     )
-    answer = response.text.strip()
+    answer = response.choices[0].message.content.strip()
     return re.sub(r"\s+", " ", answer)
 
 def compare_results(diagnosis, correct_diagnosis):
@@ -860,10 +862,7 @@ if __name__ == "__main__":
     main()
     '''
  
-import google.generativeai as genai
-
-genai.configure(api_key="AIzaSyCdzEb7oS7zgpyy18UreQqWyljUheU5IBo")  # Replace with your actual API key
-
-for model in genai.list_models():
-    print(model.name)
-'''
+client = anthropic.Anthropic(api_key="YOUR_ANTHROPIC_API_KEY")
+models = client.models.list()
+for model in models["data"]:
+    print(model["id"])
