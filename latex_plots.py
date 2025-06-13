@@ -100,7 +100,7 @@ BIAS_DISPLAY_NAMES = {
 
 def load_all_results(logs_dir="logs"):
     results = []
-    log_files = glob.glob(os.path.join(logs_dir, "*_log.json"))
+    log_files = glob.glob(os.path.join(logs_dir, "*gemini_log.json"))
     for log_file in log_files:
         filename = os.path.basename(log_file)
         parts = filename.split('_log.json')[0].split('_', 1)
