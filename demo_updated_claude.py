@@ -189,7 +189,7 @@ ALL_BIASES = {**COGNITIVE_BIASES, **DEMOGRAPHIC_BIASES}
 
 # --- Utility Functions ---
 def query_model(prompt, system_prompt, max_tokens=200):
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "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")
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
     client = anthropic.Anthropic(api_key=api_key)
     message = client.messages.create(
         model=MODEL_NAME,
