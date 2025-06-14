@@ -187,7 +187,7 @@ ALL_BIASES = {**COGNITIVE_BIASES, **DEMOGRAPHIC_BIASES}
 # --- Utility Functions ---
 def query_model(prompt, system_prompt, max_tokens=200):
 
-    genai.configure(api_key="AIzaSyCdzEb7oS7zgpyy18UreQqWyljUheU5IBo")  
+    genai.configure(api_key="YOUR_API_KEY")  
     model = genai.GenerativeModel(MODEL_NAME)
     response = model.generate_content(
         [
