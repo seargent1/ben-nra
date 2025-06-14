@@ -186,13 +186,20 @@ ALL_BIASES = {**COGNITIVE_BIASES, **DEMOGRAPHIC_BIASES}
 
 # --- Utility Functions ---
 def query_model(prompt, system_prompt, max_tokens=200):
+    import google.generativeai as genai
 
-    genai.configure(api_key="YOUR_API_KEY")  
-    model = genai.GenerativeModel(MODEL_NAME)
+    # Load API key securely from environment variable
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+    # Initialize the Gemini model with system instructions
+    model = genai.GenerativeModel(
+        model_name=MODEL_NAME,
+        system_instruction=system_prompt  # This sets the assistant's behavior
+    )
+
+    # Generate content using the user prompt only (clean separation)
     response = model.generate_content(
-        [
-            {"role": "user", "parts": [system_prompt + "\n" + prompt]}
-        ],
+        prompt,
         generation_config={
             "temperature": 0.05,
             "top_p": 1,
@@ -200,6 +207,8 @@ def query_model(prompt, system_prompt, max_tokens=200):
             "max_output_tokens": max_tokens
         }
     )
+
+    # Clean up response text
     answer = response.text.strip()
     return re.sub(r"\s+", " ", answer)
 
