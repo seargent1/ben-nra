@@ -1,0 +1,177 @@
+{
+  "start_time": "2025-06-15T10:49:04.466163",
+  "completed_combinations": 30,
+  "total_combinations": 30,
+  "results_by_combination": {
+    "MedQA_none": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 18,
+      "accuracy": 72.0
+    },
+    "MedQA_recency": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 16,
+      "accuracy": 64.0
+    },
+    "MedQA_status_quo": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 16,
+      "accuracy": 64.0
+    },
+    "MedQA_confirmation": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 20,
+      "accuracy": 80.0
+    },
+    "MedQA_availability": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 19,
+      "accuracy": 76.0
+    },
+    "MedQA_premature_closure": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 18,
+      "accuracy": 72.0
+    },
+    "MedQA_overconfidence": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 14,
+      "accuracy": 56.00000000000001
+    },
+    "MedQA_omission": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 17,
+      "accuracy": 68.0
+    },
+    "MedQA_representativeness": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 18,
+      "accuracy": 72.0
+    },
+    "MedQA_sunk_cost": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 16,
+      "accuracy": 64.0
+    },
+    "MedQA_anchoring": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 19,
+      "accuracy": 76.0
+    },
+    "MedQA_race": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 14,
+      "accuracy": 56.00000000000001
+    },
+    "MedQA_gender": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 16,
+      "accuracy": 64.0
+    },
+    "MedQA_age": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 17,
+      "accuracy": 68.0
+    },
+    "NEJM_none": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 7,
+      "accuracy": 28.000000000000004
+    },
+    "NEJM_recency": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 7,
+      "accuracy": 28.000000000000004
+    },
+    "NEJM_status_quo": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 8,
+      "accuracy": 32.0
+    },
+    "NEJM_confirmation": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 5,
+      "accuracy": 20.0
+    },
+    "NEJM_availability": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 7,
+      "accuracy": 28.000000000000004
+    },
+    "NEJM_premature_closure": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 7,
+      "accuracy": 28.000000000000004
+    },
+    "NEJM_overconfidence": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 6,
+      "accuracy": 24.0
+    },
+    "NEJM_omission": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 7,
+      "accuracy": 28.000000000000004
+    },
+    "NEJM_representativeness": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 6,
+      "accuracy": 24.0
+    },
+    "NEJM_sunk_cost": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 5,
+      "accuracy": 20.0
+    },
+    "NEJM_anchoring": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 7,
+      "accuracy": 28.000000000000004
+    },
+    "NEJM_race": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 9,
+      "accuracy": 36.0
+    },
+    "NEJM_gender": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 5,
+      "accuracy": 20.0
+    },
+    "NEJM_age": {
+      "completed": true,
+      "scenarios_run": 25,
+      "correct_diagnoses": 7,
+      "accuracy": 28.000000000000004
+    }
+  },
+  "end_time": "2025-06-15T10:49:04.702703",
+  "total_duration_seconds": 0.23654
+}
