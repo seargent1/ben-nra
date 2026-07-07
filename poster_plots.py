@@ -6,21 +6,19 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib
 
-# --- Style Settings for LaTeX Serif Fonts + Clean Look ---
-# Call sns.set() before updating rcParams to ensure custom settings are not overridden
+# --- Style Settings for Poster: Distinct Sans-serif, Extra Large Font, No LaTeX ---
 sns.set(style="whitegrid")
-
 matplotlib.rcParams.update({
-    "text.usetex": True,
-    "font.family": "serif",
-    "font.serif": ["Computer Modern"],
+    "text.usetex": False,
+    "font.family": "sans-serif",
+    "font.sans-serif": ["DejaVu Sans", "Fira Sans", "Verdana", "Tahoma", "Arial", "Liberation Sans"],
     "pdf.fonttype": 42,
     "ps.fonttype": 42,
-    "axes.labelsize": 10,
-    "axes.titlesize": 11,
-    "legend.fontsize": 9,
-    "xtick.labelsize": 9,
-    "ytick.labelsize": 9,
+    "axes.labelsize": 28,
+    "axes.titlesize": 32,
+    "legend.fontsize": 24,
+    "xtick.labelsize": 24,
+    "ytick.labelsize": 24,
 })
 
 # --- Bias Groups ---
@@ -186,108 +184,76 @@ def aggregate_impact_by_category(comparison_df):
     
     return category_summary_df
 
-def plot_category_summary_impact(category_summary_df, output_dir="figures"):
-    """Plots the aggregated impact of bias categories."""
-    os.makedirs(output_dir, exist_ok=True)
+def plot_category_summary_impact_combined(category_summary_df, output_path="figures/category_summary_impact.png"):
+    """Plots the aggregated impact of bias categories for all metrics in one figure."""
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    metrics = {
-        'accuracy': 'Accuracy Impact (\%)', # Changed from (pp)
-        'tests_requested_count': 'Tests Requested Impact',
-        'diagnoses_considered_count': 'Diagnoses Considered Impact'
-    }
+    metrics = [
+        ('accuracy', 'Accuracy Impact (%)'),
+        ('tests_requested_count', 'Tests Requested Impact'),
+        ('diagnoses_considered_count', 'Diagnoses Considered Impact')
+    ]
 
-    # Ensure 'bias_category' is treated as a categorical type with the defined order
-    # This helps in sorting the y-axis of the plots correctly.
+    # Ensure categorical order for bias_category
     category_summary_df['bias_category'] = pd.Categorical(
         category_summary_df['bias_category'],
         categories=ORDERED_BIAS_CATEGORIES,
         ordered=True
     )
-    # Sort by the categorical order to ensure plots are consistent
     category_summary_df = category_summary_df.sort_values(by=['bias_category', 'dataset'])
 
+    # Use the two specified colors for the datasets
+    custom_palette = ['#00134d', '#6666ff']
 
-    for metric_key, label in metrics.items():
+    fig, axes = plt.subplots(1, 3, figsize=(38, 15), sharey=True)
+    handles, labels = None, None
+    for idx, (metric_key, label) in enumerate(metrics):
         col = f'{metric_key}_impact'
-        if col not in category_summary_df.columns:
-            print(f"Metric column {col} not found in category summary data. Skipping plot.")
-            continue
-        
         df_metric = category_summary_df[category_summary_df[col].notnull()].copy()
-
         if df_metric.empty:
-            print(f"No data for metric {metric_key} in category summary. Skipping plot.")
+            axes[idx].set_visible(False)
             continue
-        
-        plt.figure(figsize=(6, 5.2)) # Adjusted for potentially more categories
-        ax = sns.barplot(
+        ax = axes[idx]
+        bar = sns.barplot(
             x=col,
             y='bias_category',
             hue='dataset',
             data=df_metric,
-            # order parameter is not needed if 'bias_category' is categorical and sorted
-            palette='viridis' 
+            palette=custom_palette,
+            ax=ax
         )
-
-        plt.axvline(x=0, color='black', linestyle='--', lw=1, alpha=0.7)
-        # plt.title(f'Bias Category Summary: {label}', fontsize=11) # Removed title
-        plt.xlabel(label)
-        plt.ylabel('Bias Category') # Explicitly set Y-axis label
-
-        ax.legend(loc='best', title='Dataset', frameon=True, facecolor='white', framealpha=0.8)
-        plt.tight_layout()
-        filename = os.path.join(output_dir, f'category_summary_{metric_key}_impact.pdf')
-        plt.savefig(filename, dpi=300, bbox_inches='tight')
-        plt.close()
-        print(f"Saved: {filename}")
-
-def plot_bias_impact(comparison_df, bias_list, group_name, output_dir="figures"):
-    os.makedirs(output_dir, exist_ok=True)
-
-    metrics = {
-        'accuracy': 'Accuracy Impact (\%)', # Changed from (pp)
-        'tests_requested_count': 'Tests Requested',
-        'diagnoses_considered_count': 'Diagnoses Considered'
-    }
-
-    for metric_key, label in metrics.items():
-        col = f'{metric_key}_impact'
-        df = comparison_df[
-            (comparison_df['bias'].isin(bias_list)) &
-            (comparison_df[col].notnull())
-        ].copy()
-
-        if df.empty:
-            continue
-
-        # Map internal bias names to display names
-        df['bias_display_name'] = df['bias'].map(BIAS_DISPLAY_NAMES).fillna(df['bias'])
-        
-        # Sort biases by their display names
-        sorted_bias_display_names = sorted(df['bias_display_name'].unique())
-
-        plt.figure(figsize=(5.2, 5.2))  # Small, publishable size
-        ax = sns.barplot(
-            x=col,
-            y='bias_display_name', # Use display name for y-axis
-            hue='dataset',
-            data=df,
-            order=sorted_bias_display_names, # Order by display name
-            palette='viridis'
+        ax.axvline(x=0, color='black', linestyle='--', lw=3, alpha=0.7)
+        ax.set_xlabel(label, fontsize=38, labelpad=50)
+        if idx == 0:
+            ax.set_ylabel('Bias Category', fontsize=38, labelpad=50)
+        else:
+            ax.set_ylabel('')
+        ax.tick_params(axis='both', which='major', labelsize=34)
+        ax.xaxis.label.set_size(38)
+        ax.yaxis.label.set_size(38)
+        # Capture legend handles/labels from the first plot only
+        if handles is None and labels is None:
+            handles, labels = ax.get_legend_handles_labels()
+        # Remove all axes legends
+        ax.get_legend().remove()
+    # Place a single legend above all axes, centered
+    if handles and labels:
+        fig.legend(
+            handles, labels,
+            loc='upper center',
+            bbox_to_anchor=(0.5, 1.08),
+            ncol=len(labels),
+            fontsize=32,
+            title='Dataset',
+            title_fontsize=34,
+            frameon=True,
+            facecolor='white',
+            framealpha=0.8
         )
-
-        plt.axvline(x=0, color='black', linestyle='--', lw=1, alpha=0.7)
-        # Use group_name directly as it will be more descriptive now
-        # plt.title(f'{group_name} Biases: {label}', fontsize=11) # Removed title
-        plt.xlabel(label)
-        plt.ylabel('')
-
-        ax.legend(loc='best', title='Dataset', frameon=True, facecolor='white', framealpha=0.8)
-        plt.tight_layout()
-        filename = os.path.join(output_dir, f'{group_name}_{metric_key}_impact.pdf')
-        plt.savefig(filename, dpi=300, bbox_inches='tight')
-        plt.close()
-        print(f"Saved: {filename}")
+    plt.tight_layout(pad=7.0)
+    plt.savefig(output_path, dpi=600, bbox_inches='tight')
+    plt.close()
+    print(f"Saved: {output_path}")
 
 def main():
     results = load_all_results()
@@ -300,48 +266,17 @@ def main():
         print("No comparison data.")
         return
 
-    base_output_dir = "figures"
-
-    # --- Individual Bias Plots ---
-    individual_plots_dir = os.path.join(base_output_dir, "individual_bias_impact")
-    
-    print("Generating all cognitive bias plots...")
-    plot_bias_impact(comparison_df, COGNITIVE_BIASES_LIST, "Cognitive (All)", os.path.join(individual_plots_dir, "cognitive_all"))
-
-    print("Generating implicit bias plots...")
-    plot_bias_impact(comparison_df, DEMOGRAPHIC_BIASES_LIST, "Implicit", os.path.join(individual_plots_dir, "implicit_all"))
-
-    print("Generating cognitive bias subgroup plots...")
-    cognitive_subgroups_base_dir = os.path.join(individual_plots_dir, "cognitive_subgroups")
-    for display_name, group_info in COGNITIVE_SUBGROUPS.items():
-        subgroup_key = group_info["key"]
-        subgroup_biases = group_info["biases"]
-        
-        relevant_biases_in_df = [
-            b for b in subgroup_biases if b in comparison_df['bias'].unique()
-        ]
-        if not relevant_biases_in_df:
-            print(f"Skipping subgroup {display_name} as no relevant data found.")
-            continue
-
-        plot_group_name = f"Cognitive {display_name}" 
-        subgroup_output_dir = os.path.join(cognitive_subgroups_base_dir, f"cognitive_{subgroup_key}")
-        
-        print(f"Generating plots for {plot_group_name} in {subgroup_output_dir}...")
-        plot_bias_impact(comparison_df, relevant_biases_in_df, plot_group_name, subgroup_output_dir)
-
-    # --- Category Level Plots ---
     print("Aggregating impact by category...")
     category_summary_df = aggregate_impact_by_category(comparison_df)
 
     if not category_summary_df.empty:
-        category_comparison_plot_dir = os.path.join(base_output_dir, "category_summary_impact")
-        print(f"Generating category summary plots in {category_comparison_plot_dir}...")
-        plot_category_summary_impact(category_summary_df, category_comparison_plot_dir)
+        output_path = "figures/category_summary_impact.png"
+        print(f"Generating combined category summary plot in {output_path}...")
+        plot_category_summary_impact_combined(category_summary_df, output_path)
     else:
         print("No data for category summary, skipping category-level plots.")
 
-    print(f"All plots saved to '{base_output_dir}/' and its subfolders.")
+    print("All plots saved to 'figures/'.")
 
 if __name__ == "__main__":
     main()
